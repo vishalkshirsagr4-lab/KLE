@@ -27,8 +27,9 @@ const c = document.getElementById('bg');
   const rings = [[9, 0.06, U.PAL.cyan, 0.12], [12, 0.05, U.PAL.violet, -0.09], [15.5, 0.04, U.PAL.gold, 0.06]].map(([R, t, col, sp], i) => { const m = U.energyRing(R, t, col, { speed: sp, segs: 2 + (i % 2), gain: 2.4 }); m.position.set(0, 1, -34 - i * 4); s.add(m); return m; });
   let mx = 0, my = 0; addEventListener('pointermove', (e) => { mx = e.clientX / innerWidth - 0.5; my = e.clientY / innerHeight - 0.5; }, { passive: true });
   const rs = () => { r.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }; addEventListener('resize', rs); rs();
-  const clk = new THREE.Clock(); let t = 0, f = 0, hidden = false;
+  const clk = new THREE.Clock(); let t = 0, f = 0, hidden = false, destroyed = false;
   (function loop() {
+    if (destroyed) return;
     requestAnimationFrame(loop);
     if (++f % 30 === 0) hidden = getComputedStyle(c).display === 'none';
     if (hidden) return;
@@ -37,4 +38,18 @@ const c = document.getElementById('bg');
     rings.forEach((m, i) => { m.rotation.z = t * (i % 2 ? -0.08 : 0.1); });
     r.render(s, cam);
   })();
+  window.KLEBG3D = {
+    destroy() {
+      destroyed = true;
+      s.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          materials.forEach((material) => { if (material.map) material.map.dispose(); material.dispose(); });
+        }
+      });
+      r.dispose();
+      r.forceContextLoss?.();
+    }
+  };
 })();

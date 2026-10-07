@@ -1,36 +1,41 @@
 'use client';
+
 import dynamic from 'next/dynamic';
+import Navbar from '@/components/Navbar';
+import Hero from '@/components/Hero';
+import Stats from '@/components/Stats';
+import About from '@/components/About';
+import Domains from '@/components/Domains';
+import Timeline from '@/components/Timeline';
+import Prizes from '@/components/Prizes';
+import SponsorGrid from '@/components/SponsorGrid';
+import FAQ from '@/components/FAQ';
+import Register from '@/components/Register';
+import Portals from '@/components/Portals';
+import Contact from '@/components/Contact';
+import Footer from '@/components/Footer';
 
 const Scene3D = dynamic(() => import('@/components/Scene3D'), { ssr: false });
-const Hero = dynamic(() => import('@/components/Hero'), { ssr: false });
-const About = dynamic(() => import('@/components/About'), { ssr: false });
-const Domains = dynamic(() => import('@/components/Domains'), { ssr: false });
-const Timeline = dynamic(() => import('@/components/Timeline'), { ssr: false });
-const Register = dynamic(() => import('@/components/Register'), { ssr: false });
-const Portals = dynamic(() => import('@/components/Portals'), { ssr: false });
-const Contact = dynamic(() => import('@/components/Contact'), { ssr: false });
 
 export default function Home() {
   return (
-    <>
+    <div className="site-shell">
       <Scene3D />
-      <nav className="nav">
-        <a href="#hero">Home</a>
-        <a href="#about">About</a>
-        <a href="#domains">Domains</a>
-        <a href="#timeline">Timeline</a>
-        <a href="#register">Register</a>
-        <a href="#portals">Portals</a>
-        <a href="#contact">Contact</a>
-      </nav>
-      
-      <Hero />
-      <About />
-      <Domains />
-      <Timeline />
-      <Register />
-      <Portals />
-      <Contact />
-    </>
+      <Navbar />
+      <main className="site-main">
+        <Hero />
+        <Stats />
+        <About />
+        <Domains />
+        <Timeline />
+        <Prizes />
+        <SponsorGrid />
+        <FAQ />
+        <Register />
+        <Portals />
+        <Contact />
+      </main>
+      <Footer />
+    </div>
   );
 }

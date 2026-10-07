@@ -1,21 +1,25 @@
-'use client';
+import SectionHeading from './SectionHeading';
+import GlassCard from './ui/GlassCard';
+import Icon from './ui/Icon';
+
+const VALUES = [
+  ['01', 'INNOVATE', 'Build solutions for real-world problems.', 'spark'],
+  ['02', 'COLLABORATE', 'Work with talented students and teams.', 'users'],
+  ['03', 'CREATE', 'Turn ideas into working prototypes.', 'grid'],
+  ['04', 'IMPACT', 'Build technology that solves meaningful problems.', 'arrowUpRight']
+];
 
 export default function About() {
   return (
-    <section id="about" className="section">
-      <h2>About the hackathon</h2>
-      <div className="two-col">
-        <div className="card">
-          <p>KLE Inter College Hackathon 2K26 is conducted by the Department of BCA and is open exclusively to students of KLE BCA College, Mahalingpur. Build a team, choose a domain, bring a problem statement, and ship a working prototype in front of the judges.</p>
-          <p>Our vision: turn classroom skills into products that solve real problems in healthcare, farming, finance, learning and beyond.</p>
-        </div>
-        <div className="card">
-          <h3>Organizers</h3>
-          <p>Shivanand Patil <span className="muted">· BCA Coordinator</span></p>
-          <p>Shirish Sir <span className="muted">· BBA Coordinator</span></p>
-          <p className="muted">Teams of 2 to 4 · KLE BCA College students only · Any stack</p>
-        </div>
+    <section id="about" className="section about-section">
+      <div className="about-intro">
+        <SectionHeading eyebrow="Why KLE Hackathon?" title="The classroom ends where the build begins." description="KLE Inter College Hackathon 2K26 is a focused build experience by the Department of BCA. Bring a problem, build a team, and ship something that matters." />
+        <div className="about-fact"><span className="fact-number">02</span><p>days to move from a strong idea to a working prototype.</p></div>
       </div>
+      <div className="value-grid">
+        {VALUES.map(([number, title, copy, icon]) => <GlassCard as="article" className="value-card" key={title}><div className="value-top"><span>{number}</span><Icon name={icon} size={17} /></div><h3>{title}</h3><p>{copy}</p><span className="card-arrow"><Icon name="arrowUpRight" size={15} /></span></GlassCard>)}
+      </div>
+      <div className="organizer-line"><span>Organized by</span><strong>Shivanand Patil</strong><small>BCA Coordinator</small><i /><strong>Shirish Sir</strong><small>BBA Coordinator</small></div>
     </section>
   );
 }

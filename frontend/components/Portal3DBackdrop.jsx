@@ -1,20 +1,20 @@
 'use client';
-import { useEffect, useRef } from 'react';
+
+import { useEffect } from 'react';
 
 export default function Portal3DBackdrop() {
-  const canvasRef = useRef(null);
-
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = '/bg3d.js';
-    script.type = 'module';
+    script.src = '/kle-loader.js';
+    script.dataset.main = '/bg3d.js';
+    script.dataset.gsap = '0';
+    script.dataset.kleScene = 'backdrop';
     script.async = true;
     document.body.appendChild(script);
-
     return () => {
+      if (window.KLEBG3D?.destroy) window.KLEBG3D.destroy();
       script.remove();
     };
   }, []);
-
-  return <canvas id="bg" ref={canvasRef} />;
+  return <canvas id="bg" aria-hidden="true" />;
 }

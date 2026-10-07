@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "title": "Build the premium landing-page shell and responsive visual system",
+      "status": "in-progress"
+    },
+    {
+      "title": "Refine participant and admin portal surfaces without changing API behavior",
+      "status": "pending"
+    },
+    {
+      "title": "Run production checks and verify preserved routes and contracts",
+      "status": "pending"
+    }
+  ],
+  "updated_at": "2026-10-07T11:38:07.717Z",
+  "session_id": "01a1161b-07d6-7521-8307-012f9d68a607"
+}

@@ -1,21 +1,22 @@
 'use client';
-import { useEffect, useRef } from 'react';
+
+import { useEffect } from 'react';
 
 export default function Scene3D() {
-  const canvasRef = useRef(null);
-
   useEffect(() => {
-    // Load 3D scene
     const script = document.createElement('script');
-    script.src = '/kle3d.js';
-    script.type = 'module';
+    script.src = '/kle-loader.js';
+    script.dataset.main = '/kle3d.js';
+    script.dataset.gsap = '1';
+    script.dataset.kleScene = 'main';
     script.async = true;
     document.body.appendChild(script);
 
     return () => {
+      if (window.KLE3D?.destroy) window.KLE3D.destroy();
       script.remove();
     };
   }, []);
 
-  return <canvas id="gl" ref={canvasRef} />;
+  return <canvas id="gl" aria-hidden="true" />;
 }

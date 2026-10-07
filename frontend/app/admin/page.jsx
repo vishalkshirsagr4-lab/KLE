@@ -1,38 +1,76 @@
 'use client';
+
+import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import AdminStatCard from '@/components/dashboard/AdminStatCard';
+import StatusBadge from '@/components/dashboard/StatusBadge';
+import EmptyState from '@/components/dashboard/EmptyState';
+import Button from '@/components/ui/Button';
+import Icon from '@/components/ui/Icon';
 
 const Portal3DBackdrop = dynamic(() => import('@/components/Portal3DBackdrop'), { ssr: false });
+const EMPTY = { total: 0, participants: 0, byStatus: [], byDomain: [], bySize: [], byDay: [] };
+
+async function request(path, token, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const response = await fetch(path, { ...options, headers });
+  if (options.raw) return response;
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'The request could not be completed.');
+  return data;
+}
+
+function Bars({ items = [], label = (value) => value }) {
+  if (!items.length) return <EmptyState title="No data yet" message="Metrics will appear as teams register." icon="grid" />;
+  const max = Math.max(1, ...items.map((item) => Number(item.count || 0)));
+  return <div className="chart-bars">{items.map((item) => <div className="chart-row" key={String(item._id)}><span>{label(item._id)}</span><div><i style={{ width: `${Math.max(5, Number(item.count || 0) / max * 100)}%` }} /></div><b>{item.count}</b></div>)}</div>;
+}
+
+function TeamTable({ teams, onStatus, onDelete }) {
+  if (!teams.length) return <EmptyState title="No teams found" message="Try a different filter or wait for the next registration." icon="users" />;
+  return <div className="team-table-wrap"><table className="team-table"><thead><tr><th>Team</th><th>Track</th><th>Members</th><th>Status</th><th>Actions</th></tr></thead><tbody>{teams.map((team) => <tr key={team._id}><td><strong>{team.name}</strong><small>{team.college}</small></td><td>{team.domain}</td><td>{team.size}</td><td><StatusBadge status={team.status} /></td><td><div className="table-actions"><button className="table-action" type="button" title="Approve" onClick={() => onStatus(team, 'Approved')}><Icon name="check" size={14} /></button><button className="table-action table-action-muted" type="button" title="Set pending" onClick={() => onStatus(team, 'Pending')}><Icon name="clock" size={14} /></button><button className="table-action table-action-danger" type="button" title="Reject" onClick={() => onStatus(team, 'Rejected')}><Icon name="x" size={14} /></button><button className="table-action table-action-danger" type="button" title="Delete" onClick={() => onDelete(team)}><Icon name="plus" size={14} /></button></div></td></tr>)}</tbody></table></div>;
+}
+
+function Overview({ stats, teams, change }) {
+  const pending = stats.byStatus?.find((item) => item._id === 'Pending')?.count || 0;
+  const approved = stats.byStatus?.find((item) => item._id === 'Approved')?.count || 0;
+  return <div className="workspace-view"><div className="admin-stat-grid"><AdminStatCard label="Total teams" value={stats.total} detail="All registrations" icon="users" /><AdminStatCard label="Participants" value={stats.participants} detail="Members across teams" icon="spark" accent="is-cyan" /><AdminStatCard label="Pending reviews" value={pending} detail="Needs a decision" icon="clock" accent="is-gold" /><AdminStatCard label="Approved teams" value={approved} detail="Ready for the arena" icon="check" accent="is-green" /></div><div className="workspace-grid workspace-grid-two"><section className="workspace-panel"><div className="panel-heading"><div><p className="workspace-kicker">Registration health</p><h2>Status overview</h2></div><button className="panel-link" type="button" onClick={() => change('teams')}>Review teams <Icon name="arrowUpRight" size={14} /></button></div><Bars items={stats.byStatus} /></section><section className="workspace-panel"><div className="panel-heading"><div><p className="workspace-kicker">Where teams are building</p><h2>By track</h2></div></div><Bars items={stats.byDomain} /></section></div><section className="workspace-panel"><div className="panel-heading"><div><p className="workspace-kicker">Latest activity</p><h2>Recent registrations</h2></div><button className="panel-link" type="button" onClick={() => change('teams')}>View all <Icon name="arrowUpRight" size={14} /></button></div><TeamTable teams={teams.slice(0, 5)} onStatus={() => {}} onDelete={() => {}} /></section></div>;
+}
+
+function TeamsView({ teams, domains, onStatus, onDelete, onExport }) {
+  const [query, setQuery] = useState(''); const [status, setStatus] = useState('All statuses'); const [domain, setDomain] = useState('All tracks'); const [sort, setSort] = useState('newest');
+  const filtered = useMemo(() => [...teams].filter((team) => (!query || [team.name, team.college, team.leader?.name, team.leader?.email].some((value) => String(value || '').toLowerCase().includes(query.toLowerCase()))) && (status === 'All statuses' || team.status === status) && (domain === 'All tracks' || team.domain === domain)).sort((a, b) => sort === 'oldest' ? new Date(a.createdAt) - new Date(b.createdAt) : new Date(b.createdAt) - new Date(a.createdAt)), [teams, query, status, domain, sort]);
+  return <div className="workspace-view"><div className="workspace-view-heading"><div><p className="workspace-kicker">Operations</p><h2>Registered teams</h2><p>Search, filter, and make a clear registration decision.</p></div><button type="button" className="workspace-export" onClick={onExport}><Icon name="arrowUpRight" size={15} /> Export CSV</button></div><div className="workspace-toolbar"><label className="search-field"><Icon name="spark" size={15} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search teams, colleges, leaders…" aria-label="Search teams" /></label><select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Filter status"><option>All statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option></select><select value={domain} onChange={(e) => setDomain(e.target.value)} aria-label="Filter track"><option>All tracks</option>{domains.map((item) => <option key={item._id || item.name}>{item.name}</option>)}</select><select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort teams"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></div><section className="workspace-panel"><TeamTable teams={filtered} onStatus={onStatus} onDelete={onDelete} /><div className="table-footer"><span>{filtered.length} team{filtered.length === 1 ? '' : 's'} found</span><span>Newest first by default</span></div></section></div>;
+}
+
+function AnnouncementView({ announcements, onPost, onDelete }) {
+  const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false);
+  const submit = async (event) => { event.preventDefault(); setBusy(true); await onPost(message.trim()); setMessage(''); setBusy(false); };
+  return <div className="workspace-view"><div className="workspace-view-heading"><div><p className="workspace-kicker">Keep builders close</p><h2>Announcements</h2><p>Post an update to the public feed and verified participants.</p></div></div><div className="workspace-grid workspace-grid-two"><form className="workspace-panel announce-form" onSubmit={submit}><div className="panel-heading"><div><p className="workspace-kicker">New update</p><h2>Write an announcement</h2></div></div><textarea value={message} maxLength={300} onChange={(e) => setMessage(e.target.value)} placeholder="Share a clear update with participants…" required /><div className="announce-form-footer"><span>{message.length} / 300</span><Button type="submit" disabled={busy}>{busy ? 'Posting…' : 'Post announcement'}</Button></div></form><section className="workspace-panel"><div className="panel-heading"><div><p className="workspace-kicker">Public feed</p><h2>Recent updates</h2></div></div>{announcements.length ? <div className="announcement-list">{announcements.map((item) => <article className="announcement-row" key={item._id}><div><time>{new Date(item.createdAt).toLocaleDateString()}</time><p>{item.message}</p></div><button type="button" onClick={() => onDelete(item._id)} aria-label="Delete announcement"><Icon name="x" size={15} /></button></article>)}</div> : <EmptyState title="No announcements yet" message="Your next update will appear here." icon="mail" />}</section></div></div>;
+}
+
+function AnalyticsView({ stats }) { return <div className="workspace-view"><div className="workspace-view-heading"><div><p className="workspace-kicker">Signals and trends</p><h2>Analytics</h2><p>Read the shape of the event from captured registration data.</p></div></div><div className="workspace-grid workspace-grid-two"><section className="workspace-panel"><div className="panel-heading"><div><p className="workspace-kicker">Track distribution</p><h2>By domain</h2></div></div><Bars items={stats.byDomain} /></section><section className="workspace-panel"><div className="panel-heading"><div><p className="workspace-kicker">Team composition</p><h2>By team size</h2></div></div><Bars items={stats.bySize} label={(value) => `${value} members`} /></section><section className="workspace-panel"><div className="panel-heading"><div><p className="workspace-kicker">Registration activity</p><h2>Last 14 days</h2></div></div><Bars items={stats.byDay} label={(value) => String(value).slice(5)} /></section></div></div>; }
+
+function SettingsView({ domains, onAdd }) { const [name, setName] = useState(''); const [description, setDescription] = useState(''); const submit = (event) => { event.preventDefault(); if (!name.trim()) return; onAdd({ name: name.trim(), description: description.trim() }); setName(''); setDescription(''); }; return <div className="workspace-view"><div className="workspace-view-heading"><div><p className="workspace-kicker">Platform controls</p><h2>Settings</h2><p>Manage the track directory used by participant registration.</p></div></div><div className="workspace-grid workspace-grid-two"><form className="workspace-panel domain-form" onSubmit={submit}><div className="panel-heading"><div><p className="workspace-kicker">Track directory</p><h2>Add a track</h2></div></div><label>Track name<input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} required /></label><label>Description<textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={200} /></label><Button type="submit" icon="plus">Add track</Button></form><section className="workspace-panel"><div className="panel-heading"><div><p className="workspace-kicker">Official values</p><h2>Current tracks</h2></div></div><div className="domain-list">{domains.map((item) => <div className="domain-row" key={item._id || item.name}><span>{item.name}</span><small>{item.description}</small></div>)}</div></section></div></div>; }
 
 export default function Admin() {
-  return (
-    <div className="portal-page">
-      <Portal3DBackdrop />
-      <div className="portal-content">
-        <Link href="/" className="back-link">← Back to site</Link>
-        <div className="portal-box">
-          <h1>Admin <span className="gradient-text">Dashboard</span></h1>
-          
-          <div className="form-card">
-            <h2>Admin Access</h2>
-            <p>Review teams, approve submissions, and manage the hackathon.</p>
-            
-            <form onSubmit={(e) => { e.preventDefault(); }}>
-              <div className="form-group">
-                <label>EMAIL</label>
-                <input type="email" placeholder="admin@example.com" required />
-              </div>
-              
-              <div className="form-group">
-                <label>PASSWORD</label>
-                <input type="password" placeholder="Admin password" />
-              </div>
-
-              <button type="submit" className="btn-full">Log in to Admin</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const [token, setToken] = useState(null); const [session, setSession] = useState(null); const [checking, setChecking] = useState(true); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [active, setActive] = useState('overview'); const [data, setData] = useState({ stats: EMPTY, teams: [], domains: [], announcements: [] });
+  const load = async (currentToken) => { const [stats, teams, domains, announcements] = await Promise.all([request('/api/admin/stats', currentToken), request('/api/admin/teams', currentToken), fetch('/api/domains').then((r) => r.json()), fetch('/api/announcements').then((r) => r.json())]); setData({ stats, teams, domains, announcements }); };
+  useEffect(() => { const saved = localStorage.getItem('token'); if (!saved) { setChecking(false); return; } request('/api/admin/stats', saved).then(() => load(saved)).then(() => { setToken(saved); setSession({ name: 'Admin' }); setChecking(false); }).catch(() => { localStorage.removeItem('token'); setChecking(false); }); }, []);
+  const login = async (event) => { event.preventDefault(); setBusy(true); setError(''); try { const result = await request('/api/login', null, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) }); if (result.role !== 'admin') throw new Error('This account does not have admin access.'); localStorage.setItem('token', result.token); await load(result.token); setToken(result.token); setSession({ name: result.name || 'Admin' }); } catch (requestError) { setError(requestError.message); } finally { setBusy(false); } };
+  const logout = () => { localStorage.removeItem('token'); setToken(null); setSession(null); };
+  const updateTeam = async (team, status) => { try { const updated = await request(`/api/admin/teams/${team._id}`, token, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }); setData((current) => ({ ...current, teams: current.teams.map((item) => item._id === team._id ? updated : item) })); } catch (requestError) { setError(requestError.message); } };
+  const deleteTeam = async (team) => { if (!window.confirm(`Delete ${team.name}? This also deletes the participant account.`)) return; try { await request(`/api/admin/teams/${team._id}`, token, { method: 'DELETE' }); await load(token); } catch (requestError) { setError(requestError.message); } };
+  const exportCsv = async () => { try { const response = await request('/api/admin/export-csv', token, { raw: true }); if (!response.ok) throw new Error('Could not export registrations.'); const url = URL.createObjectURL(await response.blob()); const link = document.createElement('a'); link.href = url; link.download = 'registrations.csv'; link.click(); URL.revokeObjectURL(url); } catch (requestError) { setError(requestError.message); } };
+  const post = async (message) => { if (!message) return; try { const created = await request('/api/admin/announcements', token, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message }) }); setData((current) => ({ ...current, announcements: [created, ...current.announcements] })); } catch (requestError) { setError(requestError.message); } };
+  const removeAnnouncement = async (id) => { try { await request(`/api/admin/announcements/${id}`, token, { method: 'DELETE' }); setData((current) => ({ ...current, announcements: current.announcements.filter((item) => item._id !== id) })); } catch (requestError) { setError(requestError.message); } };
+  const addDomain = async (domain) => { try { const created = await request('/api/admin/domains', token, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(domain) }); setData((current) => ({ ...current, domains: [...current.domains, created] })); } catch (requestError) { setError(requestError.message); } };
+  if (checking) return <div className="workspace-loading"><span className="loader-orbit" /><p>Loading workspace…</p></div>;
+  if (!token || !session) return <div className="portal-page admin-auth-page"><Portal3DBackdrop /><div className="portal-content"><Link href="/" className="back-link">← Back to site</Link><div className="portal-box"><p className="section-eyebrow">Operations access</p><h1>Admin <span className="gradient-text">workspace</span></h1><div className="form-card"><h2>Sign in to continue</h2><p>Review registrations, track the arena, and keep participants moving.</p><form onSubmit={login}><div className="form-group"><label htmlFor="admin-email">Email address</label><input id="admin-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@example.com" autoComplete="email" required /></div><div className="form-group"><label htmlFor="admin-password">Password</label><input id="admin-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Admin password" autoComplete="current-password" required /></div><button type="submit" className="btn-full" disabled={busy}><span>{busy ? 'Signing in…' : 'Enter admin workspace'}</span><Icon name="arrowUpRight" size={16} /></button></form>{error && <p className="form-message error" role="alert">{error}</p>}</div></div></div></div>;
+  const titles = { overview: ['Overview', 'A clear read on the arena right now.'], teams: ['Teams', 'Search, review, and make registration decisions.'], submissions: ['Submissions', 'Problem statements captured during registration.'], announcements: ['Announcements', 'Keep verified participants close to the latest update.'], analytics: ['Analytics', 'Signals from the registrations already in the system.'], settings: ['Settings', 'Manage the track directory and session.'] };
+  return <DashboardLayout role="admin" active={active} onChange={setActive} title={titles[active][0]} subtitle={titles[active][1]} name={session.name} onLogout={logout}>{error && <div className="workspace-alert" role="alert"><Icon name="x" size={15} />{error}<button type="button" onClick={() => setError('')}><Icon name="x" size={14} /></button></div>}{active === 'overview' && <Overview stats={data.stats} teams={data.teams} change={setActive} />}{active === 'teams' && <TeamsView teams={data.teams} domains={data.domains} onStatus={updateTeam} onDelete={deleteTeam} onExport={exportCsv} />}{active === 'submissions' && <div className="workspace-view"><div className="workspace-view-heading"><div><p className="workspace-kicker">Problem statements</p><h2>Submission readiness</h2><p>Separate project submissions are not enabled by the existing API.</p></div></div><section className="workspace-panel"><div className="submission-list">{data.teams.map((team) => <article className="submission-row" key={team._id}><div><span>{team.domain}</span><h3>{team.name}</h3><p>{team.problemStatement}</p></div><StatusBadge status={team.status} /></article>)}</div>{!data.teams.length && <EmptyState title="No registered teams" message="Problem statements will appear here after registration." icon="arrowUpRight" />}</section></div>}{active === 'announcements' && <AnnouncementView announcements={data.announcements} onPost={post} onDelete={removeAnnouncement} />}{active === 'analytics' && <AnalyticsView stats={data.stats} />}{active === 'settings' && <SettingsView domains={data.domains} onAdd={addDomain} />}</DashboardLayout>;
 }

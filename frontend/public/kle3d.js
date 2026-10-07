@@ -20,7 +20,7 @@ const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
 
 const mobile = innerWidth < 820 || matchMedia('(pointer:coarse)').matches;
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const Q = { dpr: Math.min(devicePixelRatio || 1, mobile ? 1.5 : 2), particles: mobile ? 3800 : 9000, bokeh: mobile ? 40 : 110, shadows: !mobile, msaa: mobile ? 0 : 4, bloom: mobile ? 0.7 : 0.95, curve: mobile ? 6 : 10 };
+const Q = { dpr: Math.min(devicePixelRatio || 1, mobile ? 1.35 : 1.85), particles: mobile ? 1800 : 7200, bokeh: mobile ? 18 : 72, shadows: !mobile, msaa: mobile ? 0 : 4, bloom: mobile ? 0.52 : 0.82, curve: mobile ? 5 : 9 };
 const FLOOR = -3.4, FOV = 40, TH = Math.tan((FOV * Math.PI) / 360);
 
 function setBoot(p) { const e = $('#bootp'); if (e) e.textContent = Math.round(p) + '%'; }
@@ -401,7 +401,7 @@ async function main() {
   const this_ = { trophy: 0, portal: 0 };
   addEventListener('click', (e) => {
     if (ui(e.target) || !hoverTarget) return;
-    if (hoverTarget === 'portal') warpTo('portal.html');
+    if (hoverTarget === 'portal') warpTo('/portal');
     else if (hoverTarget === 'trophy') { try { if (window.boom) window.boom(); } catch (er) {} punch(); }
   });
 
@@ -416,18 +416,22 @@ async function main() {
   window.kleWarp = warpTo;
   document.addEventListener('click', (e) => {
     const a = e.target.closest && e.target.closest('a[href]'); if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
-    const h = a.getAttribute('href'); if (/^(portal|admin)\.html/.test(h) && !a.target) { e.preventDefault(); warpTo(h); }
+    const h = a.getAttribute('href'); if (/^\/(portal|admin)(\/|$)/.test(h) && !a.target) { e.preventDefault(); warpTo(h); }
   });
   addEventListener('pageshow', (e) => { if (e.persisted) { warping = false; W.v = 0; W.flash = 0; document.body.classList.remove('warping'); } });
 
   /* ---------- render loop ---------- */
-  const clock = new THREE.Clock(); let t = 0, frame = 0, slow = 0, tInt = 0, lastU = -1;
+  const clock = new THREE.Clock(); let t = 0, frame = 0, slow = 0, tInt = 0, lastU = -1, destroyed = false;
   const introLen = calm ? 0 : 4.2; let introT = calm ? 99 : 0;
   const colA = new THREE.Color(), colB = new THREE.Color();
   const tints = [U.PAL.cyan, U.PAL.violet, U.PAL.blue, U.PAL.gold, U.PAL.violet, U.PAL.cyan, U.PAL.blue, U.PAL.gold];
   let ready = false;
 
   function frameFn() {
+    if (destroyed || document.hidden) {
+      if (!destroyed) requestAnimationFrame(frameFn);
+      return;
+    }
     requestAnimationFrame(frameFn);
     let dt = Math.min(clock.getDelta(), 0.1); const ts = calm ? 0.25 : 1; t += dt * ts; U.uTime.value = t;
     introT += dt;
@@ -507,7 +511,28 @@ async function main() {
   }
   setBoot(92);
   requestAnimationFrame(frameFn);
-  window.KLE3D = { THREE, scene, cam, renderer, composer, bloom, Q, key, lights: { rimA, rimB, mouseLight, heroPoint } };
+  window.KLE3D = {
+    THREE, scene, cam, renderer, composer, bloom, Q, key, lights: { rimA, rimB, mouseLight, heroPoint },
+    destroy() {
+      if (destroyed) return;
+      destroyed = true;
+      scene.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          materials.forEach((material) => {
+            if (material.map) material.map.dispose();
+            if (material.emissiveMap) material.emissiveMap.dispose();
+            material.dispose();
+          });
+        }
+      });
+      composer.dispose();
+        renderer.dispose();
+      renderer.forceContextLoss?.();
+      document.body.style.cursor = '';
+    }
+  };
 }
 
 /* ---------- mini trophy for the domain carousel ---------- */
