@@ -1,0 +1,79 @@
+/* ============ KLE 3D redesign layer (loaded last) ============
+   Midnight black / deep navy with electric blue, neon cyan, violet and metallic gold. */
+:root{--bg:#02040c;--cy:#2ee9ff;--vi:#8b5cff;--bl:#2d6bff;--gd:#ffc247;--mg:#b79bff;--tx:#e8efff;--mu:#9fb0dc}
+body{background:#02040c}
+#gl{position:fixed;inset:0;width:100%;height:100%;z-index:0;background:radial-gradient(120% 80% at 50% 100%,#0a1a4a 0%,#040a1c 45%,#02040c 100%)}
+.no-gl #gl{display:none}
+.no-gl body{background:radial-gradient(120% 80% at 50% 100%,#0a1a4a 0%,#040a1c 45%,#02040c 100%) fixed}
+
+/* boot overlay */
+#boot{position:fixed;inset:0;z-index:200;background:#02040c;display:grid;place-content:center;justify-items:center;gap:26px;transition:opacity .8s ease,visibility .8s}
+#boot.done{opacity:0;visibility:hidden}
+.boot-ring{position:relative;width:96px;height:96px;perspective:500px}
+.boot-ring i{position:absolute;inset:0;border-radius:50%;border:2px solid var(--cy);box-shadow:0 0 22px var(--cy);animation:sp 3s linear infinite}
+.boot-ring i:nth-child(2){inset:12px;border-color:var(--gd);box-shadow:0 0 18px var(--gd);animation-duration:2s;animation-direction:reverse}
+.boot-ring i:nth-child(3){inset:26px;border-color:var(--vi);box-shadow:0 0 14px var(--vi);animation-duration:4s}
+.boot-txt{font:600 12px 'Chakra Petch',sans-serif;letter-spacing:.32em;color:#cfe3ff;text-align:center}
+.boot-txt span{color:var(--gd)}
+
+/* glass system */
+.g{background:linear-gradient(160deg,rgba(14,26,62,.62),rgba(5,10,28,.7));border:1px solid rgba(130,170,255,.22);border-radius:16px;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 0 28px rgba(46,233,255,.05),0 24px 60px rgba(0,0,0,.45);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3)}
+.g.pad,.g.pad p{color:#dbe6ff}
+.btn{background:linear-gradient(100deg,var(--cy),var(--bl) 55%,var(--vi));color:#02101e;border-radius:10px;box-shadow:0 0 22px rgba(46,233,255,.4),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .25s,box-shadow .25s,filter .25s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 0 34px rgba(46,233,255,.7),inset 0 1px 0 rgba(255,255,255,.5);filter:brightness(1.1)}
+h2{text-shadow:0 0 26px rgba(46,233,255,.4);letter-spacing:.01em;background:linear-gradient(180deg,#fff 30%,#a9c4ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 0 18px rgba(46,233,255,.3))}
+#tick{background:rgba(2,4,12,.72);border-bottom:1px solid rgba(46,233,255,.22)}
+nav a{color:#c9d8ff;position:relative;transition:color .2s}
+nav a.on{color:var(--cy)}
+nav a.on:after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:2px;background:var(--cy);box-shadow:0 0 10px var(--cy)}
+#cd div{background:linear-gradient(160deg,rgba(255,194,71,.1),rgba(14,26,62,.6));border-color:rgba(255,194,71,.35)}
+#cd b{color:#fff;text-shadow:0 0 16px rgba(255,194,71,.6)}
+.cta i{border-color:var(--cy);box-shadow:0 0 25px var(--cy),inset 0 0 25px var(--bl)}
+.cta i:nth-child(2){border-color:var(--gd);box-shadow:0 0 22px var(--gd),inset 0 0 22px var(--gd)}
+.cta i:nth-child(3){border-color:var(--vi)}
+.cta span{text-shadow:0 0 14px var(--cy)}
+
+/* section rail */
+#rail{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:30;display:none;flex-direction:column;gap:14px}
+#rail a{display:flex;align-items:center;justify-content:flex-end;gap:10px;text-decoration:none;color:var(--mu);font:600 10px 'Chakra Petch';letter-spacing:.18em;text-transform:uppercase}
+#rail span{opacity:0;transform:translateX(6px);transition:.25s;pointer-events:none}
+#rail a:hover span,#rail a.on span{opacity:1;transform:none}
+#rail i{width:9px;height:9px;border-radius:50%;border:1px solid var(--cy);transition:.25s}
+#rail a.on i{background:var(--cy);box-shadow:0 0 12px var(--cy);transform:scale(1.3)}
+@media(min-width:1100px){#rail{display:flex}}
+
+/* scroll reveals (independent of transform so hover effects keep working) */
+.rv{opacity:0;translate:0 46px;transition:opacity .9s var(--rd,0s) ease,translate .9s var(--rd,0s) cubic-bezier(.2,.8,.2,1),transform .3s,border-color .3s,box-shadow .3s}
+.rv.in{opacity:1;translate:0 0}
+
+/* ===== hero when the WebGL title is live ===== */
+.gl-on #hero{justify-content:space-between;align-items:center;padding-bottom:36px}
+.gl-on #hero h1{position:static;width:100%;text-align:center;margin-top:0}
+.gl-on #hero h1 b{display:block;font:600 clamp(11px,1.3vw,15px)/1 'Chakra Petch';letter-spacing:.5em;color:#cfe3ff;text-shadow:0 0 18px rgba(46,233,255,.7);margin-bottom:6px}
+.gl-on.gl-text #hero h1 .big{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hero-bottom{display:flex;flex-direction:column;align-items:center}
+.hero-bottom p{margin-left:auto;margin-right:auto}
+.gl-on #hero .hero-kicker{margin:0 0 4px;color:var(--gd)}
+.gl-on #hero .sub{margin:6px 0 18px}
+.gl-on #hero .hero-slogan{margin:0 0 4px}
+.gl-on #cd{margin-bottom:20px}
+.gl-on #cd div{padding:9px 12px;min-width:64px}
+.gl-on #cd b{font-size:24px}
+.gl-on .cta{width:124px;height:124px;font-size:12px}
+.gl-on .cta i:nth-child(2){inset:10px}.gl-on .cta i:nth-child(3){inset:22px}
+@media(min-width:1100px){.gl-on #hero .hero-bottom{padding-right:16vw}}
+.gl-on .hrv{opacity:0;translate:0 26px;transition:opacity 1.1s var(--d,0s) ease,translate 1.1s var(--d,0s) cubic-bezier(.2,.8,.2,1)}
+.gl-on.ready .hrv{opacity:1;translate:0 0}
+.gl-on #hero h1.hrv{--d:.6s}
+/* no-gl fallback keeps the original big title */
+.no-gl #hero h1 .big{display:block}
+#hero h1 .big{display:block}
+
+/* legibility over the scene */
+section{position:relative}
+p{text-shadow:0 1px 14px rgba(2,4,12,.9)}
+.g p{text-shadow:none}
+body.warping main,body.warping nav,body.warping #tick{transition:opacity .6s,filter .6s;opacity:0;filter:blur(8px)}
+
+@media(prefers-reduced-motion:reduce){.rv,.gl-on .hrv{opacity:1;translate:none;transition:none}}
