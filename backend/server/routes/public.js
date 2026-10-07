@@ -40,11 +40,21 @@ const hashCode = (email, code) => crypto.createHmac('sha256', process.env.JWT_SE
 const sameHash = (a, b) => a.length === b.length && crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 async function issueOtp(u) {
   const code = String(crypto.randomInt(100000, 1000000));
-  u.otpHash = hashCode(u.email, code); u.otpExpires = new Date(Date.now() + 10 * 60 * 1000); u.otpAttempts = 0; u.otpSentAt = new Date();
+  u.otpHash = undefined; u.otpExpires = undefined; u.otpAttempts = 0; u.otpSentAt = undefined;
   await u.save();
   await sendOtp(u, code);
+  u.otpHash = hashCode(u.email, code); u.otpExpires = new Date(Date.now() + 10 * 60 * 1000); u.otpSentAt = new Date();
+  await u.save();
 }
 const MAIL_FAIL = 'We could not send the verification email. Check the Brevo settings, then press Resend code.';
+
+function getMailErrorMessage(error) {
+  const ip = error.message.match(/unrecogni[sz]ed IP address\s+([0-9a-f:.]+)/i)?.[1];
+  if (ip) {
+    return `Brevo blocked this server IP (${ip}). Add it to your authorized IPs at https://app.brevo.com/security/authorised_ips, then resend the code.`;
+  }
+  return MAIL_FAIL;
+}
 
 // POST /api/signup : creates an unverified account and emails a code
 router.post('/signup', async (req, res) => {
@@ -56,7 +66,7 @@ router.post('/signup', async (req, res) => {
   const password = await bcrypt.hash(pw, 10);
   if (u) { u.name = name; u.password = password; } else u = new User({ name, email, password, role: 'participant' });
   try { await issueOtp(u); }
-  catch (e) { console.error('OTP email failed:', e.message); return res.status(502).json({ error: MAIL_FAIL, needsVerification: true, email }); }
+  catch (e) { console.error('OTP email failed:', e.message); return res.status(502).json({ error: getMailErrorMessage(e), needsVerification: true, email }); }
   res.status(201).json({ ok: true, needsVerification: true, email });
 });
 
@@ -80,7 +90,7 @@ router.post('/resend-code', async (req, res) => {
   if (u && !u.emailVerified) {
     const wait = u.otpSentAt ? 60 - Math.floor((Date.now() - u.otpSentAt) / 1000) : 0;
     if (wait > 0) return res.status(429).json({ error: `Please wait ${wait} seconds before requesting another code.` });
-    try { await issueOtp(u); } catch (e) { console.error('OTP email failed:', e.message); return res.status(502).json({ error: MAIL_FAIL }); }
+    try { await issueOtp(u); } catch (e) { console.error('OTP email failed:', e.message); return res.status(502).json({ error: getMailErrorMessage(e) }); }
   }
   res.json({ ok: true });
 });
