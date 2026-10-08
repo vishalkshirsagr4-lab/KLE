@@ -17,9 +17,10 @@ function getCountdown() {
 }
 
 export default function Hero() {
-  const [countdown, setCountdown] = useState(getCountdown);
+  const [countdown, setCountdown] = useState(null);
 
   useEffect(() => {
+    setCountdown(getCountdown());
     const timer = setInterval(() => setCountdown(getCountdown()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -42,8 +43,11 @@ export default function Hero() {
       <div className="hero-side-info" aria-label="Event countdown">
         <div className="hero-side-label"><span>01</span><span>THE ARENA OPENS IN</span></div>
         <div className="countdown">
-          {[['days', countdown.days], ['hrs', countdown.hours], ['min', countdown.minutes], ['sec', countdown.seconds]].map(([label, value]) => (
-            <div className="countdown-unit" key={label}><strong>{String(value).padStart(2, '0')}</strong><span>{label}</span></div>
+          {[['days', 'days'], ['hrs', 'hours'], ['min', 'minutes'], ['sec', 'seconds']].map(([label, unit]) => (
+            <div className="countdown-unit" key={label}>
+              <strong>{countdown ? String(countdown[unit]).padStart(2, '0') : '--'}</strong>
+              <span>{label}</span>
+            </div>
           ))}
         </div>
         <p className="hero-side-note">Kickoff · 10 Oct 2026 · 11:00 AM</p>
