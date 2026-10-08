@@ -1,6 +1,7 @@
 # KLE Hackathon 2K26 (Next.js + Node.js + Brevo)
 - `backend/` Express + MongoDB API (your original server). Email now uses **Brevo** (OTP code, registration confirmation, and NEW: announcement emails to all verified participants).
 - `frontend/` Next.js app. All your original pages/3D/features live in `frontend/public` (index, portal, admin) and are served by Next; `/api/*` is proxied to the backend.
+- Team leaders invite verified participants from **My Team**; invited participants must accept before they are added. Direct member assignment is rejected by the API.
 
 ## Run
 1. backend: `cd backend && cp .env.example .env` (fill in) `&& npm i && npm start`  (port 5000)

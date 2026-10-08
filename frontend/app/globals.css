@@ -781,5 +781,24 @@ button { cursor: pointer; }
 .profile-panel dl div { display: flex; justify-content: space-between; gap: 1rem; padding: .8rem 0; border-bottom: 1px solid rgba(180,211,242,.08); }
 .profile-panel dt { color: var(--muted); font-size: .68rem; }
 .profile-panel dd { margin: 0; color: var(--text-soft); font-size: .72rem; }
+.team-invitations { display: grid; gap: 1rem; }
+.team-invite-form { display: grid; gap: .55rem; padding: .9rem; border: 1px solid var(--line); border-radius: .7rem; background: rgba(255,255,255,.02); }
+.team-invite-form p, .team-invite-form small { margin: 0; color: var(--muted); font-size: .66rem; line-height: 1.5; }
+.team-invite-controls { display: flex; gap: .6rem; }
+.team-invite-controls input { flex: 1; min-width: 0; min-height: 2.65rem; border: 1px solid var(--line); border-radius: .6rem; padding: .7rem; outline: 0; color: var(--text); background: rgba(0,0,0,.2); font-size: .75rem; }
+.team-invite-controls input:focus { border-color: var(--cyan); box-shadow: 0 0 0 .2rem rgba(99,230,255,.1); }
+.team-invite-controls button:disabled { opacity: .5; cursor: not-allowed; }
+.invitation-list { display: grid; gap: .45rem; }
+.invitation-list h3 { margin: 0; color: var(--muted); font: .62rem/1 'Chakra Petch', sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.invitation-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .7rem 0; border-bottom: 1px solid rgba(180,211,242,.08); }
+.invitation-row strong { color: var(--text-soft); font-size: .72rem; font-weight: 500; }
+.invitation-row p { margin: .2rem 0 0; color: var(--muted); font-size: .62rem; }
+.invitation-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+.invitation-actions .ui-button { min-height: 2.1rem; padding: .5rem .65rem; font-size: .62rem; }
+.invitation-status { color: var(--muted); font: .6rem/1 'Chakra Petch', sans-serif; text-transform: uppercase; }
+.invitation-status.accepted { color: var(--green); }
+.invitation-status.pending { color: var(--cyan); }
+.form-message.success { margin: 0; color: var(--green); font-size: .68rem; }
 @media (max-width: 760px) { .participant-welcome { align-items: start; flex-direction: column; } .submission-steps { grid-template-columns: 1fr; } }
 @media (max-width: 520px) { .team-form-grid { grid-template-columns: 1fr; } .member-form-row { grid-template-columns: 1.4rem 1fr; } .member-form-row input:last-child { grid-column: 2; } .participant-members { align-items: start; flex-wrap: wrap; } .participant-members .panel-link { margin-left: 3rem; } }
+@media (max-width: 520px) { .team-invite-controls, .invitation-row { align-items: stretch; flex-direction: column; } }
