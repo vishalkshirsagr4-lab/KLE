@@ -88,4 +88,38 @@ async function sendConfirmation(team) {
   );
 }
 
-module.exports = { configured, send, sendOtp, sendConfirmation };
+async function sendTeamInvitation(team, invitee, inviter) {
+  if (!invitee || !invitee.email) {
+    throw new Error('An invitee email is required to send a team invitation.');
+  }
+
+  const teamName = team && team.name ? team.name : 'your team';
+  const inviterName = inviter && inviter.name ? inviter.name : 'Your teammate';
+
+  await send(
+    invitee.email,
+    `KLE Hackathon 2K26 - Invitation to join ${teamName}`,
+    `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+      <h2>Team invitation</h2>
+      <p><strong>${escapeHtml(inviterName)}</strong> has invited you to join <strong>${escapeHtml(teamName)}</strong>.</p>
+      <p>Log in to the participant portal and accept or reject the invitation from your dashboard.</p>
+    </div>`
+  );
+}
+
+async function sendInvitationDecision(invitation, decision) {
+  if (!invitation || !invitation.email) {
+    return;
+  }
+
+  await send(
+    invitation.email,
+    decision === 'accepted' ? 'KLE Hackathon 2K26 - Invitation accepted' : 'KLE Hackathon 2K26 - Invitation rejected',
+    `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+      <h2>${decision === 'accepted' ? 'Invitation accepted' : 'Invitation rejected'}</h2>
+      <p>Your invitation status has been updated.</p>
+    </div>`
+  );
+}
+
+module.exports = { configured, send, sendOtp, sendConfirmation, sendTeamInvitation, sendInvitationDecision };
