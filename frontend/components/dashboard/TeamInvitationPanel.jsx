@@ -1,12 +1,52 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function TeamInvitationPanel({ token, user, team, invitations, onUpdated }) {
-  const [email, setEmail] = useState('');
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedParticipant, setSelectedParticipant] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+
+  useEffect(() => {
+    if (selectedParticipant || query.trim().length < 2) {
+      setSuggestions([]);
+      setSearching(false);
+      setSearchError('');
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
+      setSearching(true);
+      setSearchError('');
+      try {
+        const response = await fetch(`/api/participants/search?q=${encodeURIComponent(query.trim())}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'Could not search participants.');
+        setSuggestions(data);
+      } catch (requestError) {
+        if (requestError.name !== 'AbortError') {
+          setSuggestions([]);
+          setSearchError(requestError.message);
+        }
+      } finally {
+        if (!controller.signal.aborted) setSearching(false);
+      }
+    }, 250);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [query, selectedParticipant, token]);
 
   const request = async (path, method, body) => {
     const response = await fetch(path, {
@@ -24,12 +64,18 @@ export default function TeamInvitationPanel({ token, user, team, invitations, on
 
   const invite = async (event) => {
     event.preventDefault();
+    if (!selectedParticipant) {
+      setError('Search for and select a participant before sending the invitation.');
+      return;
+    }
     setBusy('invite');
     setError('');
     setNotice('');
     try {
-      await request('/api/team/invite', 'POST', { email });
-      setEmail('');
+      await request('/api/team/invite', 'POST', { email: selectedParticipant.email });
+      setQuery('');
+      setSelectedParticipant(null);
+      setSuggestions([]);
       setNotice('Invitation sent. The participant must accept it before joining your team.');
       await onUpdated();
     } catch (requestError) {
@@ -76,17 +122,56 @@ export default function TeamInvitationPanel({ token, user, team, invitations, on
 
       {isLeader && (
         <form className="team-invite-form" onSubmit={invite}>
-          <p>Invite a registered, verified participant by email. They will join only after accepting.</p>
+          <p>Search by name or email, select the right participant, then send the invitation. They join only after accepting.</p>
           <div className="team-invite-controls">
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="member@example.com"
-              aria-label="Participant email"
-              required
-            />
-            <button className="ui-button" type="submit" disabled={busy === 'invite' || slotsAvailable <= 0}>
+            <div className="team-invite-picker">
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setSelectedParticipant(null);
+                  setError('');
+                }}
+                placeholder="Enter participant name or email"
+                aria-label="Search participants by name or email"
+                aria-autocomplete="list"
+                aria-expanded={suggestions.length > 0}
+                disabled={slotsAvailable <= 0}
+              />
+              {selectedParticipant && (
+                <div className="team-invite-selected" role="status">
+                  <strong>{selectedParticipant.name}</strong>
+                  <span>{selectedParticipant.email}</span>
+                  <button type="button" onClick={() => { setSelectedParticipant(null); setQuery(''); }}>Change</button>
+                </div>
+              )}
+              {!selectedParticipant && query.trim().length >= 2 && (
+                <div className="team-invite-suggestions" role="listbox" aria-label="Participant recommendations">
+                  {searching && <p>Searching participants…</p>}
+                  {!searching && searchError && <p className="is-error">{searchError}</p>}
+                  {!searching && !searchError && suggestions.map((participant) => (
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected="false"
+                      key={participant.id}
+                      onClick={() => {
+                        setSelectedParticipant(participant);
+                        setQuery(participant.name);
+                        setSuggestions([]);
+                        setError('');
+                      }}
+                    >
+                      <strong>{participant.name}</strong>
+                      <span>{participant.email}</span>
+                    </button>
+                  ))}
+                  {!searching && !searchError && suggestions.length === 0 && <p>No verified participants found.</p>}
+                </div>
+              )}
+            </div>
+            <button className="ui-button" type="submit" disabled={busy === 'invite' || slotsAvailable <= 0 || !selectedParticipant}>
               {busy === 'invite' ? 'Sending…' : 'Send invitation'}
             </button>
           </div>
