@@ -53,4 +53,32 @@ const Announcement = mongoose.models.Announcement || mongoose.model('Announcemen
   message: { type: String, required: true }
 }, { timestamps: true }));
 
-module.exports = { User, Team, Invitation, Domain, Announcement };
+const Notification = mongoose.models.Notification || mongoose.model('Notification', new Schema({
+  recipientId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  announcementId: { type: Schema.Types.ObjectId, ref: 'Announcement' },
+  title: { type: String, required: true, maxlength: 120 },
+  message: { type: String, required: true, maxlength: 1000 },
+  type: { type: String, enum: ['ANNOUNCEMENT', 'SYSTEM', 'TEAM', 'SUBMISSION', 'OTHER'], default: 'OTHER' },
+  isRead: { type: Boolean, default: false },
+  readAt: Date,
+  dedupeKey: { type: String, unique: true, sparse: true },
+  metadata: { type: Schema.Types.Mixed, default: {} }
+}, { timestamps: true }));
+Notification.schema.index({ recipientId: 1, createdAt: -1 });
+Notification.schema.index({ recipientId: 1, isRead: 1, createdAt: -1 });
+Notification.schema.index({ announcementId: 1, recipientId: 1 }, {
+  unique: true,
+  partialFilterExpression: { announcementId: { $type: 'objectId' } }
+});
+
+const PushSubscription = mongoose.models.PushSubscription || mongoose.model('PushSubscription', new Schema({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  endpoint: { type: String, required: true, unique: true },
+  keys: {
+    p256dh: { type: String, required: true },
+    auth: { type: String, required: true }
+  }
+}, { timestamps: true }));
+PushSubscription.schema.index({ userId: 1, createdAt: -1 });
+
+module.exports = { User, Team, Invitation, Domain, Announcement, Notification, PushSubscription };

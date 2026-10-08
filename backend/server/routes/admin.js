@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { User, Team, Domain, Announcement } = require('../models');
 const { auth, adminOnly } = require('../middleware/auth');
 const { sendAnnouncement } = require('../lib/mail');
+const { createAnnouncementNotifications } = require('../lib/notifications');
 router.use(auth, adminOnly);
 
 const rx = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -64,8 +65,9 @@ router.post('/announcements', async (req, res) => {
   const message = String(req.body.message || '').trim().slice(0, 300);
   if (!message) return res.status(400).json({ error: 'Write an announcement first.' });
   const doc = await Announcement.create({ message });
-  const users = await User.find({ role: 'participant', emailVerified: true }).select('email');
-  sendAnnouncement(message, users.map((u) => u.email)); // Brevo email to all participants
+  const users = await User.find({ role: 'participant', emailVerified: true }).select('_id email').lean();
+  await createAnnouncementNotifications(doc, users);
+  sendAnnouncement(message, users.map((u) => u.email)).catch((error) => console.error('Announcement email failed:', error.message));
   res.status(201).json(doc);
 });
 router.delete('/announcements/:id', async (req, res) => { await Announcement.findByIdAndDelete(req.params.id); res.json({ ok: true }); });

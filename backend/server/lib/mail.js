@@ -95,7 +95,7 @@ async function sendTeamInvitation(team, invitee, inviter) {
 
   const teamName = team && team.name ? team.name : 'your team';
   const inviterName = inviter && inviter.name ? inviter.name : 'Your teammate';
-  const portalUrl = `${(process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '')}/portal`;
+  const portalUrl = `${(process.env.FRONTEND_URL || 'https://kle-six.vercel.app').replace(/\/+$/, '')}/portal`;
 
   await send(
     invitee.email,
@@ -125,4 +125,16 @@ async function sendInvitationDecision(invitation, decision) {
   );
 }
 
-module.exports = { configured, send, sendOtp, sendConfirmation, sendTeamInvitation, sendInvitationDecision };
+async function sendAnnouncement(message, emails) {
+  const recipients = [...new Set((Array.isArray(emails) ? emails : []).filter((email) => typeof email === 'string' && email))];
+  return Promise.all(recipients.map((email) => send(
+    email,
+    'KLE Hackathon 2K26 - Announcement',
+    `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+      <h2>Hackathon announcement</h2>
+      <p>${escapeHtml(message)}</p>
+    </div>`
+  )));
+}
+
+module.exports = { configured, send, sendOtp, sendConfirmation, sendTeamInvitation, sendInvitationDecision, sendAnnouncement };

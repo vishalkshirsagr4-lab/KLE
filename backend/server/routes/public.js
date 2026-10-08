@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const { User, Team, Invitation, Domain, Announcement } = require('../models');
 const { auth, sign } = require('../middleware/auth');
 const { sendConfirmation, sendOtp, sendTeamInvitation, sendInvitationDecision } = require('../lib/mail');
+const { createNotification, markInvitationNotificationRead } = require('../lib/notifications');
 
 const EMAIL = /^\S+@\S+\.\S+$/;
 const str = (v, max = 200) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -228,6 +229,14 @@ router.post('/team/invite', auth, async (req, res) => {
     await Invitation.deleteOne({ _id: invite._id });
     return res.status(502).json({ error: 'The invitation could not be sent by email. Please try again.' });
   }
+  await createNotification({
+    recipientId: invitee._id,
+    title: 'Team invitation',
+    message: `${user.name} invited you to join ${team.name}. Accept or reject it from My Team.`,
+    type: 'TEAM',
+    dedupeKey: `team-invitation:${invite._id}`,
+    metadata: { invitationId: invite._id.toString(), url: '/portal?view=teams' }
+  });
   res.status(201).json({ ok: true, invite: { id: invite._id, status: invite.status, invitee: serializeParticipant(invitee) } });
 });
 
@@ -302,7 +311,22 @@ router.post('/team/invitations/:id/accept', auth, async (req, res) => {
       return res.status(409).json({ error: 'This team is full or you already belong to it.' });
     }
 
+    const supersededInvitations = await Invitation.find({
+      invitee: invitee._id,
+      _id: { $ne: invitation._id },
+      status: 'pending'
+    }).select('_id').lean();
     await Invitation.updateMany({ invitee: invitee._id, _id: { $ne: invitation._id }, status: 'pending' }, { $set: { status: 'rejected' } });
+    try {
+      await Promise.all([
+        markInvitationNotificationRead(invitee._id, invitation._id, 'accepted'),
+        ...supersededInvitations.map((item) =>
+          markInvitationNotificationRead(invitee._id, item._id, 'rejected')
+        )
+      ]);
+    } catch (error) {
+      console.error('Invitation notification sync failed:', error.message);
+    }
     try { await sendInvitationDecision(invitation, 'accepted'); } catch (error) { console.error('Invitation decision email failed:', error.message); }
     res.json({ ok: true, team: { id: updatedTeam._id, name: updatedTeam.name, status: updatedTeam.status }, invitation: { id: invitation._id, status: 'accepted' } });
   } catch (error) {
@@ -328,6 +352,11 @@ router.post('/team/invitations/:id/reject', auth, async (req, res) => {
     { new: true }
   );
   if (!rejected) return res.status(409).json({ error: 'This invitation has already been answered.' });
+  try {
+    await markInvitationNotificationRead(invitation.invitee._id, invitation._id, 'rejected');
+  } catch (error) {
+    console.error('Invitation notification sync failed:', error.message);
+  }
   try { await sendInvitationDecision(invitation, 'rejected'); } catch (error) { console.error('Invitation decision email failed:', error.message); }
   res.json({ ok: true, invitation: { id: rejected._id, status: rejected.status } });
 });
