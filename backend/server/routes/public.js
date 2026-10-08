@@ -109,10 +109,16 @@ router.get('/participants/search', auth, async (req, res) => {
   const q = str(req.query.q, 80);
   if (q.length < 2) return res.json([]);
   const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  const occupiedIds = await Promise.all([
+    Team.distinct('user'),
+    Team.distinct('leaderId'),
+    Team.distinct('members')
+  ]);
+  const unavailable = [...new Set(occupiedIds.flat().filter(Boolean).map((id) => id.toString()))];
   const users = await User.find({
     role: 'participant',
     emailVerified: true,
-    _id: { $ne: currentUser._id },
+    _id: { $ne: currentUser._id, $nin: unavailable },
     $or: [{ name: regex }, { email: regex }, { college: regex }]
   }).select('_id name email college status').limit(10).lean();
 
@@ -128,10 +134,16 @@ router.post('/participants/search', auth, async (req, res) => {
   const q = str(req.body.q || req.query.q, 80);
   if (q.length < 2) return res.json([]);
   const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  const occupiedIds = await Promise.all([
+    Team.distinct('user'),
+    Team.distinct('leaderId'),
+    Team.distinct('members')
+  ]);
+  const unavailable = [...new Set(occupiedIds.flat().filter(Boolean).map((id) => id.toString()))];
   const users = await User.find({
     role: 'participant',
     emailVerified: true,
-    _id: { $ne: currentUser._id },
+    _id: { $ne: currentUser._id, $nin: unavailable },
     $or: [{ name: regex }, { email: regex }, { college: regex }]
   }).select('_id name email college status').limit(10).lean();
 
@@ -187,7 +199,19 @@ router.post('/team/invite', auth, async (req, res) => {
   });
   if (!invitee) return res.status(404).json({ error: 'Select a verified participant to invite.' });
   if (invitee._id.toString() === user._id.toString()) return res.status(400).json({ error: 'You cannot invite yourself.' });
-  if (invitee.team || await Team.exists({ members: invitee._id })) return res.status(409).json({ error: 'This participant already belongs to a team.' });
+  const existingTeam = await Team.exists({
+    $or: [
+      ...(invitee.team ? [{ _id: invitee.team }] : []),
+      { user: invitee._id },
+      { leaderId: invitee._id },
+      { members: invitee._id }
+    ]
+  });
+  if (existingTeam) return res.status(409).json({ error: 'This participant already belongs to a team.' });
+  if (invitee.team) {
+    invitee.team = undefined;
+    await invitee.save();
+  }
 
   const existingInvite = await Invitation.findOne({ team: team._id, invitee: invitee._id, status: 'pending' });
   if (existingInvite) return res.status(409).json({ error: 'This participant already received an invitation.' });
@@ -197,7 +221,13 @@ router.post('/team/invite', auth, async (req, res) => {
   }
 
   const invite = await Invitation.create({ team: team._id, inviter: user._id, invitee: invitee._id, email: invitee.email });
-  try { await sendTeamInvitation(team, invitee, user); } catch (error) { console.error('Invitation email failed:', error.message); }
+  try {
+    await sendTeamInvitation(team, invitee, user);
+  } catch (error) {
+    console.error('Invitation email failed:', error.message);
+    await Invitation.deleteOne({ _id: invite._id });
+    return res.status(502).json({ error: 'The invitation could not be sent by email. Please try again.' });
+  }
   res.status(201).json({ ok: true, invite: { id: invite._id, status: invite.status, invitee: serializeParticipant(invitee) } });
 });
 

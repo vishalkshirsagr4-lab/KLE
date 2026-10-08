@@ -95,6 +95,7 @@ async function sendTeamInvitation(team, invitee, inviter) {
 
   const teamName = team && team.name ? team.name : 'your team';
   const inviterName = inviter && inviter.name ? inviter.name : 'Your teammate';
+  const portalUrl = `${(process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '')}/portal`;
 
   await send(
     invitee.email,
@@ -102,7 +103,9 @@ async function sendTeamInvitation(team, invitee, inviter) {
     `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
       <h2>Team invitation</h2>
       <p><strong>${escapeHtml(inviterName)}</strong> has invited you to join <strong>${escapeHtml(teamName)}</strong>.</p>
-      <p>Log in to the participant portal and accept or reject the invitation from your dashboard.</p>
+      <p>Sign in to your participant account to review this invitation. You can accept it to join the team or reject it from the Invitations section in My Team.</p>
+      <p><a href="${escapeHtml(portalUrl)}" style="display:inline-block;padding:12px 18px;border-radius:6px;background:#63e6ff;color:#041019;text-decoration:none;font-weight:bold">Open participant portal</a></p>
+      <p style="color:#667085;font-size:12px">This invitation does not add you to the team unless you accept it.</p>
     </div>`
   );
 }

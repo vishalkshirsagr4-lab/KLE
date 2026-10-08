@@ -13,7 +13,7 @@ git init; git add .; git commit -m "KLE hackathon"; git branch -M main; git remo
 .env is git-ignored.
 
 ## Deploy
-Backend: Render/Railway/Vercel (root `backend`, set env vars, Atlas 0.0.0.0/0). Frontend: Vercel (root `frontend`, env BACKEND_URL = backend URL).
+Backend: Render/Railway/Vercel (root `backend`, set env vars, Atlas 0.0.0.0/0; set `FRONTEND_URL` to the deployed frontend URL for links in invitation emails). Frontend: Vercel (root `frontend`, env BACKEND_URL = backend URL).
 
 ## 3D redesign (v2)
 All 3D lives in `frontend/public`: `kle3d.js` (main scene), `k3d-util.js` (shaders, trophy, holo screens, circuit boards), `bg3d.js` (portal/admin backdrop), `kle-loader.js` (loads GSAP + three), `kle3d.css`, `kle-ui.js`.
