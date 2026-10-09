@@ -2,10 +2,10 @@
 
 import Icon from '../ui/Icon';
 
-const ICONS = { overview: 'grid', teams: 'users', submissions: 'arrowUpRight', announcements: 'mail', analytics: 'spark', settings: 'plus' };
+const ICONS = { overview: 'grid', teams: 'users', submissions: 'arrowUpRight', announcements: 'mail', notifications: 'bell', analytics: 'spark', settings: 'plus' };
 
 export default function Sidebar({ active, onChange, role = 'admin', open = true, onClose }) {
-  const items = role === 'admin' ? [['overview', 'Overview'], ['teams', 'Teams'], ['submissions', 'Submissions'], ['announcements', 'Announcements'], ['analytics', 'Analytics'], ['settings', 'Settings']] : [['overview', 'Dashboard'], ['teams', 'My Team'], ['submissions', 'Submission'], ['announcements', 'Announcements'], ['analytics', 'Timeline'], ['settings', 'Profile & settings']];
+  const items = role === 'admin' ? [['overview', 'Overview'], ['teams', 'Teams'], ['submissions', 'Submissions'], ['announcements', 'Announcements'], ['analytics', 'Analytics'], ['settings', 'Settings']] : [['overview', 'Dashboard'], ['teams', 'My Team'], ['submissions', 'Submission'], ['announcements', 'Announcements'], ['notifications', 'Notifications'], ['analytics', 'Timeline'], ['settings', 'Profile & settings']];
   return (
     <aside id="workspace-sidebar" className={`workspace-sidebar ${open ? 'is-open' : ''}`} aria-label="Workspace navigation">
       <div className="workspace-sidebar-header">

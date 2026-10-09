@@ -814,3 +814,58 @@ button { cursor: pointer; }
 @media (max-width: 760px) { .participant-welcome { align-items: start; flex-direction: column; } .submission-steps { grid-template-columns: 1fr; } }
 @media (max-width: 520px) { .team-form-grid { grid-template-columns: 1fr; } .member-form-row { grid-template-columns: 1.4rem 1fr; } .member-form-row input:last-child { grid-column: 2; } .participant-members { align-items: start; flex-wrap: wrap; } .participant-members .panel-link { margin-left: 3rem; } }
 @media (max-width: 520px) { .team-invite-controls, .invitation-row { align-items: stretch; flex-direction: column; } }
+
+/* Notifications */
+.workspace-user .workspace-notifications { position: relative; flex-shrink: 0; }
+.workspace-notifications span { position: absolute; top: -.35rem; right: -.45rem; min-width: 1.1rem; height: 1.1rem; display: grid; place-items: center; border: 2px solid var(--bg-1); border-radius: 999px; padding: 0 .2rem; color: #041019; background: var(--cyan); font: 700 .52rem/1 'Chakra Petch', sans-serif; }
+.notifications-view { min-width: 0; }
+.notification-page-heading { align-items: center; }
+.notification-toolbar, .push-prompt-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.notification-toolbar button, .notification-actions button, .notification-load-more, .notification-toast-open { min-height: 2.25rem; border: 1px solid var(--line); border-radius: 999px; padding: .55rem .75rem; color: var(--text-soft); background: rgba(255,255,255,.035); font: 600 .6rem/1 'Chakra Petch', sans-serif; letter-spacing: .04em; cursor: pointer; }
+.notification-toolbar button:hover, .notification-actions button:hover, .notification-load-more:hover, .notification-toast-open:hover { border-color: rgba(99,230,255,.4); color: var(--cyan); }
+.notification-toolbar button:disabled, .notification-actions button:disabled, .notification-load-more:disabled { opacity: .45; cursor: not-allowed; }
+.push-prompt { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; border-color: rgba(99,230,255,.2); }
+.push-prompt h2 { margin: 0; color: var(--text); font: 500 1.15rem/1.2 'Chakra Petch', sans-serif; }
+.push-prompt p:not(.workspace-kicker) { margin: .4rem 0 0; color: var(--muted); font-size: .68rem; }
+.push-prompt .form-message { flex: 1 1 100%; }
+.push-prompt-actions { flex-shrink: 0; }
+.notification-list { display: grid; gap: 0; padding: .35rem 1rem; }
+.notification-card { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) auto; align-items: center; gap: .65rem; padding: 1rem .25rem; border-bottom: 1px solid rgba(180,211,242,.09); transition: background var(--duration-standard) ease, border-color var(--duration-standard) ease, transform var(--duration-standard) ease; }
+.notification-card:last-child { border-bottom: 0; }
+.notification-card.is-unread { border-left: 1px solid rgba(99,230,255,.4); border-radius: .7rem; padding-left: .7rem; background: linear-gradient(90deg, rgba(99,230,255,.09), rgba(99,230,255,.02) 38%, transparent 80%); box-shadow: inset 0 0 0 1px rgba(99,230,255,.08); }
+.notification-card.is-read:hover, .notification-card.is-unread:hover { transform: translateY(-1px); }
+.notification-select { display: grid; place-items: center; }
+.notification-select input { width: .9rem; height: .9rem; accent-color: var(--cyan); }
+.notification-content { min-width: 0; display: flex; align-items: start; gap: .65rem; border: 0; padding: 0; color: inherit; background: none; text-align: left; cursor: pointer; }
+.notification-indicator { padding-top: .1rem; color: var(--muted); font-size: .75rem; }
+.is-unread .notification-indicator { color: var(--cyan); }
+.notification-copy { min-width: 0; display: grid; gap: .25rem; }
+.notification-copy strong { color: var(--text); font-size: .75rem; font-weight: 600; }
+.notification-copy > span { overflow-wrap: anywhere; color: var(--text-soft); font-size: .68rem; line-height: 1.5; }
+.notification-copy time { color: var(--muted); font-size: .58rem; }
+.notification-actions { display: flex; justify-content: end; flex-wrap: wrap; gap: .35rem; }
+.notification-actions button { min-height: 1.9rem; padding: .45rem .6rem; font-size: .56rem; }
+.notification-actions button:first-child { color: var(--cyan); }
+.notification-empty { display: grid; justify-items: center; gap: .35rem; padding: 3rem 1rem; color: var(--muted); text-align: center; }
+.notification-empty svg { color: var(--cyan); }
+.notification-empty h3 { margin: .4rem 0 0; color: var(--text-soft); font: 500 1rem/1 'Chakra Petch', sans-serif; }
+.notification-empty p { margin: 0; font-size: .68rem; }
+.notification-load-more { justify-self: center; margin: 1rem 0; padding-inline: 1rem; }
+.notification-connection { margin: 0; color: var(--gold); font-size: .65rem; }
+.notification-toast { position: fixed; z-index: 80; right: 1.25rem; bottom: 1.25rem; width: min(23rem, calc(100vw - 2rem)); display: grid; gap: .35rem; border: 1px solid rgba(99,230,255,.32); border-radius: .9rem; padding: 1rem; background: linear-gradient(180deg, rgba(8,18,31,.96), rgba(9,15,25,.98)); box-shadow: 0 1rem 3rem rgba(0,0,0,.45), inset 0 0 0 1px rgba(99,230,255,.12); backdrop-filter: blur(16px); }
+.notification-toast > strong { padding-right: 1.4rem; color: var(--text); font-size: .75rem; }
+.notification-toast > span { color: var(--text-soft); font-size: .67rem; }
+.notification-toast > button:first-child { position: absolute; top: .65rem; right: .65rem; display: grid; place-items: center; width: 1.7rem; height: 1.7rem; border: 0; border-radius: 50%; color: var(--muted); background: transparent; cursor: pointer; }
+.notification-toast .notification-toast-open { justify-self: start; margin-top: .35rem; }
+@media (max-width: 760px) {
+  .notification-page-heading { align-items: start; }
+  .push-prompt { align-items: start; flex-direction: column; }
+  .notification-card { grid-template-columns: 1.25rem minmax(0, 1fr); align-items: start; }
+  .notification-actions { grid-column: 2; justify-content: start; }
+}
+@media (max-width: 520px) {
+  .notification-toolbar { width: 100%; }
+  .notification-toolbar button { flex: 1; }
+  .notification-list { padding-inline: .65rem; }
+  .notification-toast { right: .75rem; bottom: .75rem; }
+}

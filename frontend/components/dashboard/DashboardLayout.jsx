@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 
-export default function DashboardLayout({ role, active, onChange, title, subtitle, name, onLogout, children }) {
+export default function DashboardLayout({ role, active, onChange, title, subtitle, name, onLogout, notificationCount = 0, onNotifications, children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const change = (next) => { onChange(next); setMenuOpen(false); };
   return (
@@ -18,6 +18,8 @@ export default function DashboardLayout({ role, active, onChange, title, subtitl
           menuOpen={menuOpen}
           onMenu={() => setMenuOpen((value) => !value)}
           onLogout={onLogout}
+          notificationCount={notificationCount}
+          onNotifications={onNotifications}
         />
         <main className="workspace-content">{children}</main>
       </div>

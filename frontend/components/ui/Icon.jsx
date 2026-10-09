@@ -3,6 +3,7 @@
 const PATHS = {
   arrowRight: 'M4 12h15m-6-6 6 6-6 6',
   arrowUpRight: 'M5 19 19 5m0 0H9m10 0v10',
+  bell: 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12h4',
   check: 'm5 12 4 4L19 6',
   chevronDown: 'm6 9 6 6 6-6',
   clock: 'M12 7v5l3 2m7-2a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z',

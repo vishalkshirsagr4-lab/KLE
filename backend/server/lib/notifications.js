@@ -79,7 +79,10 @@ async function createNotification(data) {
 
   const payload = publicNotification(notification);
   const io = getRealtimeServer();
-  if (io) io.to(`user:${notification.recipientId}`).emit('notification:new', payload);
+  if (io) {
+    io.to(`user:${notification.recipientId}`).emit('notification', payload);
+    io.to(`user:${notification.recipientId}`).emit('notification:new', payload);
+  }
 
   try {
     await sendPush(notification);

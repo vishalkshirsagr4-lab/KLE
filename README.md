@@ -15,6 +15,16 @@ git init; git add .; git commit -m "KLE hackathon"; git branch -M main; git remo
 ## Deploy
 Backend: Render/Railway/Vercel (root `backend`, set env vars, Atlas 0.0.0.0/0; set `FRONTEND_URL` to the deployed frontend URL for links in invitation emails). Frontend: Vercel (root `frontend`, env BACKEND_URL = backend URL).
 
+## Notifications
+Notifications are saved in MongoDB and delivered in-app over authenticated Socket.IO. Team invitations are sent by email and also appear in the recipient's dashboard inbox; recipients can accept or reject them there. Admin announcements are saved as notifications for verified participants and also sent by email.
+
+- Run the backend as a persistent Node service (`npm start`) for live Socket.IO delivery. The serverless `backend/api` wrapper does not host Socket.IO.
+- Set `FRONTEND_URL` on the backend to the deployed frontend origin(s), comma-separated if needed. It configures API/Socket.IO CORS and invitation email links.
+- Set `BACKEND_URL` on the frontend for the `/api/*` Next.js rewrite. `NEXT_PUBLIC_API_URL` may override the Socket.IO backend origin; the dashboard otherwise connects to `https://kle.onrender.com`.
+- Browser push is optional. In `backend/`, run `npx web-push generate-vapid-keys` and set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT` on the backend. Keep the private key secret. Users enable browser permission from the dashboard; in-app notifications work without VAPID keys.
+- Authenticated notification endpoints are under `/api/notifications`: `GET /` (paginated inbox), `GET /unread-count`, `PATCH /:id/read`, `PATCH /read-all`, `DELETE /:id`, and `DELETE /clear`. Push subscription endpoints are `/push/public-key`, `/push/subscribe` (`POST`/`DELETE`).
+- Socket.IO authenticates using the existing participant JWT in the handshake `auth.token`. Events are `notification:new` and `notification:updated`.
+
 ## 3D redesign (v2)
 All 3D lives in `frontend/public`: `kle3d.js` (main scene), `k3d-util.js` (shaders, trophy, holo screens, circuit boards), `bg3d.js` (portal/admin backdrop), `kle-loader.js` (loads GSAP + three), `kle3d.css`, `kle-ui.js`.
 Scene: extruded chrome "HACKATHON 2K26", gold trophy, holographic code screens, circuit boards, glass panels, energy rings, light shafts, bloom, scroll-driven camera, mouse parallax, hover (letters/trophy/portal), warp transition into the portal pages.
