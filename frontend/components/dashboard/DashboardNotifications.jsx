@@ -35,7 +35,7 @@ function fromBase64Url(value) {
   return Uint8Array.from(raw, (character) => character.charCodeAt(0));
 }
 
-function PushPrompt({ token }) {
+export function PushPrompt({ token }) {
   const [available, setAvailable] = useState(false);
   const [permission, setPermission] = useState('default');
   const [dismissed, setDismissed] = useState(false);
@@ -467,14 +467,21 @@ export default function DashboardNotifications({
     );
   }
 
-  if (active !== 'notifications') return toast ? (
-    <div className="notification-toast" role="status" aria-live="polite">
-      <button type="button" aria-label="Close notification" onClick={() => setToast(null)}><Icon name="x" size={15} /></button>
-      <strong>{toast.title}</strong>
-      <span>{toast.message}</span>
-      <button type="button" className="notification-toast-open" onClick={() => openNotification(toast)}>View</button>
-    </div>
-  ) : null;
+  if (active !== 'notifications') {
+    return (
+      <>
+        <PushPrompt token={token} />
+        {toast ? (
+          <div className="notification-toast" role="status" aria-live="polite">
+            <button type="button" aria-label="Close notification" onClick={() => setToast(null)}><Icon name="x" size={15} /></button>
+            <strong>{toast.title}</strong>
+            <span>{toast.message}</span>
+            <button type="button" className="notification-toast-open" onClick={() => openNotification(toast)}>View</button>
+          </div>
+        ) : null}
+      </>
+    );
+  }
 
   return (
     <>

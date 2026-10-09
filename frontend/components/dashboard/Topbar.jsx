@@ -2,7 +2,7 @@
 
 import Icon from '../ui/Icon';
 
-export default function Topbar({ title, subtitle, name, menuOpen = false, onMenu, onLogout, notificationCount = 0, onNotifications }) {
+export default function Topbar({ title, subtitle, name, menuOpen = false, onMenu, notificationCount = 0, onNotifications }) {
   return (
     <header className="workspace-topbar">
       <button
@@ -28,9 +28,6 @@ export default function Topbar({ title, subtitle, name, menuOpen = false, onMenu
         )}
         <span className="workspace-avatar">{String(name || 'A').slice(0, 2).toUpperCase()}</span>
         <span className="workspace-user-copy"><strong>{name || 'Admin'}</strong><small>Signed in</small></span>
-        <button type="button" onClick={onLogout} aria-label="Sign out" title="Sign out">
-          <Icon name="arrowUpRight" size={16} />
-        </button>
       </div>
     </header>
   );
