@@ -489,7 +489,7 @@ button { cursor: pointer; }
 
 /* Operations workspace */
 .workspace { min-height: 100svh; display: flex; position: relative; overflow-x: clip; background: linear-gradient(135deg, #050a12, #07111d 60%, #091626); color: var(--text); }
-.workspace-sidebar { width: 16.5rem; flex: 0 0 16.5rem; display: flex; flex-direction: column; position: relative; z-index: 5; padding: 1.5rem 1rem; border-right: 1px solid var(--line); background: rgba(3,8,15,.73); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); }
+.workspace-sidebar { width: 16.5rem; height: 100svh; flex: 0 0 16.5rem; display: flex; flex-direction: column; position: sticky; top: 0; align-self: flex-start; overflow-y: auto; z-index: 5; padding: 1.5rem 1rem; border-right: 1px solid var(--line); background: rgba(3,8,15,.73); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); }
 .workspace-brand { display: inline-flex; align-items: center; gap: .65rem; padding: 0 .5rem; color: var(--text); text-decoration: none; min-width: 0; }
 .workspace-brand > span:last-child { display: grid; gap: .2rem; }
 .workspace-brand strong { font: 600 .75rem/1 'Chakra Petch', sans-serif; letter-spacing: .12em; }
@@ -612,9 +612,11 @@ button { cursor: pointer; }
 @media (max-width: 760px) {
   .workspace-sidebar {
     width: min(82vw, 18rem);
+    height: 100svh;
     flex-basis: min(82vw, 18rem);
     position: fixed;
     inset: 0 auto 0 0;
+    overflow-y: auto;
     z-index: 30;
     padding: calc(1rem + env(safe-area-inset-top, 0px)) .9rem 1rem;
     transform: translateX(-102%);
