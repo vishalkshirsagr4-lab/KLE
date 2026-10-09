@@ -103,13 +103,14 @@ export function skyDome(mobile) {
     vertexShader: `varying vec3 vD;void main(){vD=normalize(position);vec4 p=projectionMatrix*vec4(mat3(modelViewMatrix)*position,1.);p.z=p.w;gl_Position=p;}`,
     fragmentShader: NOISE + `uniform float uTime,uMix;uniform vec3 uTint,uTint2;varying vec3 vD;
      void main(){vec3 d=normalize(vD);float h=d.y;
-      vec3 top=vec3(.004,.007,.02);vec3 hor=vec3(.012,.035,.10);
+      vec3 top=vec3(.008,.014,.035);vec3 hor=vec3(.035,.075,.16);
       vec3 c=mix(hor,top,smoothstep(-.05,.7,h));
       float n=${mobile ? 'noise(d*3.+vec3(uTime*.01))' : 'fbm(d*2.6+vec3(uTime*.012,0.,uTime*.008))'};
       vec3 tint=mix(uTint,uTint2,uMix);
       c+=tint*pow(n,2.4)*.55*(1.-abs(h)*.9);
       c+=vec3(.02,.10,.28)*exp(-abs(h)*9.)*.9;
-      c*=smoothstep(-.6,.05,h)*.85+.15;
+      c+=vec3(.012,.03,.075)*(1.-smoothstep(-.1,.65,h));
+      c*=smoothstep(-.6,.05,h)*.55+.45;
       gl_FragColor=vec4(c,1.);}`
   });
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), m);

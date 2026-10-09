@@ -44,7 +44,7 @@ async function main() {
   renderer.setPixelRatio(Q.dpr);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = Q.shadows; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.setClearColor(0x02040c, 1);
+  renderer.setClearColor(0x08172b, 1);
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x040a1c, 0.0125);
